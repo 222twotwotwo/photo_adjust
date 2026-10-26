@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>证件照裁剪 · 295 × 413</title>
+<meta name="description" content="把任意格式的照片裁剪压缩成 295 × 413 像素的证件照，全程在浏览器本地完成，照片不会上传到任何服务器。" />
+<meta name="color-scheme" content="light" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%231c6b58'/%3E%3Cpath d='M8.2 5v8.8a2 2 0 0 0 2 2H17' stroke='%23fff' stroke-width='1.7' fill='none' stroke-linecap='round'/%3E%3Cpath d='M15.8 19v-8.8a2 2 0 0 0-2-2H7' stroke='%23fff' stroke-width='1.7' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+
+<div class="page">
+  <header class="masthead">
+    <div class="brand">
+      <span class="mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 2.5v12a3.5 3.5 0 0 0 3.5 3.5h12" />
+          <path d="M18 21.5v-12A3.5 3.5 0 0 0 14.5 6h-12" />
+        </svg>
+      </span>
+      <div class="brand-text">
+        <h1>照片裁剪</h1>
+        <p>任意格式照片 → 标准证件照尺寸</p>
+      </div>
+    </div>
+    <div class="badge" id="badge">295 × 413 px</div>
+  </header>
+
+  <main class="layout">
+    <section class="stage" aria-label="裁剪工作区">
+      <!-- 空状态 -->
+      <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="选择照片或把照片拖到这里">
+        <svg class="dz-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="5" y="9" width="38" height="30" rx="4" />
+          <circle cx="16" cy="19" r="3.2" />
+          <path d="M8 34l9.5-9.5a3 3 0 0 1 4.2 0L31 33.8" />
+          <path d="M28 31l4.6-4.6a3 3 0 0 1 4.2 0L43 32.5" />
+        </svg>
+        <p class="dz-title">把照片拖到这里</p>
+        <p class="dz-sub">或点击选择文件 · 也支持 Ctrl / ⌘ + V 粘贴</p>
+        <button class="btn-pick" type="button" id="pickBtn">选择照片</button>
+        <p class="dz-formats">JPG · PNG · WebP · AVIF · BMP · GIF</p>
+      </div>
+
+      <!-- 编辑器 -->
+      <div class="editor" id="editor" hidden>
+        <div class="cropper" id="cropper" tabindex="0" role="application" aria-label="裁剪区域，可拖动调整位置">
+          <img id="preview" alt="待裁剪照片预览" draggable="false" />
+          <span class="grid" aria-hidden="true"></span>
+          <span class="corner tl" aria-hidden="true"></span>
+          <span class="corner tr" aria-hidden="true"></span>
+          <span class="corner bl" aria-hidden="true"></span>
+          <span class="corner br" aria-hidden="true"></span>
+        </div>
+
+        <div class="toolbar">
+          <div class="zoom-group">
+            <button class="icon-btn" id="zoomOut" type="button" aria-label="缩小">−</button>
+            <input class="zoom-range" id="zoomRange" type="range" min="1" max="8" step="0.01" value="1" aria-label="缩放比例" />
+            <button class="icon-btn" id="zoomIn" type="button" aria-label="放大">+</button>
+          </div>
+          <div class="tool-group">
+            <button class="tool-btn" id="rotateBtn" type="button">旋转 90°</button>
+            <button class="tool-btn" id="resetBtn" type="button">复位</button>
+            <button class="tool-btn" id="changeBtn" type="button">换一张</button>
+          </div>
+        </div>
+
+        <p class="stage-meta" id="stageMeta"></p>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <div class="card">
+        <h2 class="card-title">规格</h2>
+        <div class="presets" id="presets" role="radiogroup" aria-label="照片规格"></div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">输出</h2>
+
+        <div class="segmented" id="formats" role="radiogroup" aria-label="文件格式">
+          <button type="button" data-format="image/jpeg" class="active">JPG</button>
+          <button type="button" data-format="image/png">PNG</button>
+          <button type="button" data-format="image/webp">WebP</button>
+        </div>
+
+        <div class="quality-row" id="qualityRow">
+          <label for="qualityRange">画质</label>
+          <input id="qualityRange" type="range" min="0.4" max="1" step="0.01" value="0.92" />
+          <output id="qualityOut">92%</output>
+        </div>
+
+        <div class="field">
+          <div class="field-head"><span>底色</span><span class="field-note">填充透明区域</span></div>
+          <div class="swatches" id="swatches" role="radiogroup" aria-label="底色">
+            <button class="swatch" type="button" data-bg="#ffffff" aria-checked="true" title="白底"><span class="sr">白底</span></button>
+            <button class="swatch" type="button" data-bg="#438edb" aria-checked="false" title="蓝底"><span class="sr">蓝底</span></button>
+            <button class="swatch" type="button" data-bg="#d64545" aria-checked="false" title="红底"><span class="sr">红底</span></button>
+            <button class="swatch" type="button" data-bg="none" aria-checked="false" title="透明"><span class="sr">透明</span></button>
+          </div>
+        </div>
+
+        <dl class="readout">
+          <div><dt>输出尺寸</dt><dd id="outSize">295 × 413 px</dd></div>
+          <div><dt>文件大小</dt><dd id="outWeight">—</dd></div>
+          <div><dt>源图尺寸</dt><dd id="srcSize">—</dd></div>
+        </dl>
+
+        <button class="btn-download" id="downloadBtn" type="button" disabled>下载照片</button>
+        <p class="hint">照片只在本机浏览器处理，不会上传到任何服务器。</p>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<input type="file" id="fileInput" accept="image/*,.heic,.heif,.avif,.bmp,.tif,.tiff" hidden />
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="drop-overlay" id="dropOverlay" aria-hidden="true"><div class="drop-hint">松手即可载入照片</div></div>
+
+<script src="./app.js"></script>
+</body>
+</html>
